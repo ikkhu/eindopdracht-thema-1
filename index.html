@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eenvoudige Taakbeheerder</title>
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #166088;
+            --accent-color: #4cb5f5;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .task-form {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .task-list {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .task-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .task-item:last-child {
+            border-bottom: none;
+        }
+        
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .task-title {
+            font-weight: 600;
+            font-size: 18px;
+            color: var(--primary-color);
+        }
+        
+        .task-description {
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .delete-btn {
+            background-color: var(--danger-color);
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+        
+        .delete-btn:hover {
+            background-color: #bd2130;
+        }
+        
+        .no-tasks {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .task-form, .task-list {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Eenvoudige Taakbeheerder</h1>
+            <p>Voeg je taken toe met titel en beschrijving</p>
+        </header>
+        
+        <section class="task-form">
+            <h2>Nieuwe taak toevoegen</h2>
+            <form id="addTaskForm">
+                <div class="form-group">
+                    <label for="taskTitle">Titel:</label>
+                    <input type="text" id="taskTitle" required placeholder="Voer taaktitel in">
+                </div>
+                <div class="form-group">
+                    <label for="taskDescription">Beschrijving:</label>
+                    <textarea id="taskDescription" required placeholder="Voer taakbeschrijving in"></textarea>
+                </div>
+                <button type="submit">Taak toevoegen</button>
+            </form>
+        </section>
+        
+        <section class="task-list">
+            <h2>Jouw taken</h2>
+            <div id="tasksContainer">
+                <!-- Taken worden hier dynamisch ingeladen -->
+                <div class="no-tasks">Nog geen taken. Voeg er hierboven een toe!</div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const addTaskForm = document.getElementById('addTaskForm');
+            const tasksContainer = document.getElementById('tasksContainer');
+            
+            // Laad taken wanneer de pagina geladen is
+            loadTasks();
+            
+            // Voeg event listener toe voor form submission
+            addTaskForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const title = document.getElementById('taskTitle').value;
+                const description = document.getElementById('taskDescription').value;
+                
+                addTask(title, description);
+                
+                // Reset form
+                addTaskForm.reset();
+            });
+            
+            // Functie om taken te laden
+            function loadTasks() {
+                fetch('/api/tasks')
+                    .then(response => response.json())
+                    .then(tasks => {
+                        displayTasks(tasks);
+                    })
+                    .catch(error => {
+                        console.error('Fout bij laden taken:', error);
+                    });
+            }
+            
+            // Functie om taak toe te voegen
+            function addTask(title, description) {
+                fetch('/api/tasks', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ title, description })
+                })
+                .then(response => response.json())
+                .then(() => {
+                    loadTasks(); // Herlaad de takenlijst
+                })
+                .catch(error => {
+                    console.error('Fout bij toevoegen taak:', error);
+                });
+            }
+            
+            // Functie om taak te verwijderen
+            function deleteTask(id) {
+                fetch(`/api/tasks/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(() => {
+                    loadTasks(); // Herlaad de takenlijst
+                })
+                .catch(error => {
+                    console.error('Fout bij verwijderen taak:', error);
+                });
+            }
+            
+            // Functie om taken weer te geven
+            function displayTasks(tasks) {
+                if (tasks.length === 0) {
+                    tasksContainer.innerHTML = '<div class="no-tasks">Nog geen taken. Voeg er hierboven een toe!</div>';
+                    return;
+                }
+                
+                tasksContainer.innerHTML = '';
+                
+                tasks.forEach(task => {
+                    const taskElement = document.createElement('div');
+                    taskElement.className = 'task-item';
+                    taskElement.innerHTML = `
+                        <div class="task-header">
+                            <div class="task-title">${task.title}</div>
+                            <button class="delete-btn" data-id="${task.id}">Verwijderen</button>
+                        </div>
+                        <div class="task-description">${task.description}</div>
+                    `;
+                    
+                    tasksContainer.appendChild(taskElement);
+                });
+                
+                // Voeg event listeners toe aan delete knoppen
+                document.querySelectorAll('.delete-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const taskId = this.getAttribute('data-id');
+                        deleteTask(taskId);
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>
