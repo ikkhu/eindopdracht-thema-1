@@ -1,0 +1,38 @@
+taak kunnen toevoegen met een titel + korte beschrijving
+
+taken opslaan in een db die gebuik maakt van Mysql of Postgresql
+
+webinterface moet eenvoudig zijn en kan gemaakt worden met html css js backend (pyhton) of c#
+
+1 container voor web aplicatie
+1 container voor database 
+
+communiceeren via docker netwerk
+
+map met backend-code
+map met database-init scripts (sql bestanden)
+
+docker file voor web app
+
+docker-compose.yml voor opzeten containers
+
+bij opstart db minimaalen kolommen:
+
+id (PRIMARY KEY, AUTO_INCREMENT)
+title (VARCHAR)
+description (TEXT)
+
+een readme.txt toevoegen waarin staat 
+
+hoe het gestart kan worden met docker 
+welke containers er zijn en de rollen die ze hebben
+hoe de db is ingerricht
+
+bouw een eenvoudige api met endpoints
+
+GET /tasks > lijst alle taken
+post /tasks > voeg taak toe 
+delete /tasks/:id > verwijder taak
+
+
+ 
